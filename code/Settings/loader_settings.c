@@ -1,0 +1,106 @@
+/**
+  ******************************************************************************
+  * @file    loader_settings.c
+  * @author  Trembach Dmitriy
+  * @version V1.0.0
+  * @date    09-09-2015
+  * @brief   This file contains all the functions prototypes for loader_settings
+  *          file.
+  ******************************************************************************
+  * @attention
+  *
+  *
+  ******************************************************************************
+  */
+
+/* Includes ------------------------------------------------------------------*/
+#include "settings.h"
+#include "loader_settings.h"
+#include "EEPROM_Flash.h"
+
+#if VECT_TAB_OFFSET == 0x20000
+
+// структура переменных загрузчика, которые прочитали из EEPROM FLASH при запуске программы
+FlashLoaderSettingsTypeDef DataLoaderSto;	
+
+/* Private typedef -----------------------------------------------------------*/
+/* Private define ------------------------------------------------------------*/
+/* Private macro -------------------------------------------------------------*/
+/* Private variables ---------------------------------------------------------*/
+/* Private function prototypes -----------------------------------------------*/
+/* Private functions ---------------------------------------------------------*/
+
+/**
+  * @brief  Функция чтения параметров из FLASH 
+  * @param  uint16_t* BuffWR  указатель на буфер данных
+  * @param  uint16_t BuffWRSize  размер данных
+  * @param  uint32_t FlashStartAdr адресс памяти флеш с которой начинаем чтение
+  * @retval None
+  */
+void Read_Setup_Loader_Flash(uint32_t* BuffRD, uint16_t BuffRDSize, uint32_t FlashStartAdr)
+{
+  uint16_t TempCntFlash; 
+  //цикл чтения данных
+  for(TempCntFlash = 0;TempCntFlash < (BuffRDSize>>2);TempCntFlash++)
+  {
+    //чтение непосредственно из флеш памяти
+    *(BuffRD+TempCntFlash) = (*(__IO uint32_t*) (FlashStartAdr + (((uint32_t)TempCntFlash)<<2)));
+  }
+}
+
+/**
+  * @brief  Функция чтения структуры параметров pfuhepxbrf
+  * @param  FlashSettingsTypeDef *DataSettings указатель на массив для прочитанных данныx
+  * @retval None
+  */
+void Read_Loader_Settings(FlashLoaderSettingsTypeDef *DataLoadSettings)
+{
+  //чтения параметров из FLASH
+  Read_Setup_Loader_Flash((uint32_t *)DataLoadSettings,sizeof(FlashLoaderSettingsTypeDef),FLASH_Loader_Setup_START_ADDR);
+}
+#else
+  // структура содержит значения по умолчанию для всех переменных которые будем хранить в EEPROM FLASH
+  // если добавляем переменную - то обязательно вносим ее в таблицу значений по умолчанию	!!!
+  const	FlashLoaderSettingsTypeDef DataLoaderSto =
+  {	
+    0, 	/* контрольная сумма структуры параметров и счетчика числа стираний FLASH*/
+    /*=========================== структуры параметров ==========================*/
+    0x7128, 	//uint16_t 	phy_adr; 	// физический адрес блока
+
+    172, 	//uint8_t 	ip_ad0; 	// Адрес IPv4
+    16, 	//uint8_t 	ip_ad1; 	// Адрес IPv4
+    1,   	//uint8_t 	ip_ad2; 	// Адрес IPv4
+    231, 	//uint8_t 	ip_ad3; 	// Адрес IPv4
+
+    172, 	//uint8_t 	ip_gt0; 	// IPv4 шлюз
+    16, 	//uint8_t 	ip_gt1; 	// IPv4 шлюз
+    1,   	//uint8_t 	ip_gt2; 	// IPv4 шлюз
+    1, 		//uint8_t 	ip_gt3; 	// IPv4 шлюз
+    
+    255,      	//uint8_t 	ip_mask0; 	// Маска подсети
+    255,      	//uint8_t 	ip_mask1; 	// Маска подсети
+    255,      	//uint8_t 	ip_mask2; 	// Маска подсети
+    0,        	//uint8_t 	ip_mask3; 	// Маска подсети
+    
+    0x00,	//uint8_t 	mac_ad0; 	// MAC адрес
+    0x80,	//uint8_t 	mac_ad1; 	// MAC адрес
+    0x12,	//uint8_t 	mac_ad2; 	// MAC адрес
+    0x75,	//uint8_t 	mac_ad3; 	// MAC адрес
+    0x57,	//uint8_t 	mac_ad4; 	// MAC адрес
+    0x60,	//uint8_t 	mac_ad5; 	// MAC адрес
+    
+    7700,	//uint16_t 	ip_port_loader; // Порт загрузчика
+    
+    12345,      //uint16_t      code_pass;      // Код доступа   
+    
+    0x08020000, //uint32_t 	addr_start; 	// Адрес программы пользователя
+    0x00000000,	//uint32_t 	soft_size; 	// Размер программы пользователя
+    0x12345678,	//uint32_t 	soft_crc; 	// Контрольная сумма программы
+    0
+  };	
+#endif
+
+
+
+/************************ (C) COPYRIGHT DEX *****END OF FILE****/
+
